@@ -34,19 +34,15 @@ class rdf(Observable):
     def __init__(self, system, nbins, r_range, index_tuple=None, width=None):
         super(rdf, self).__init__(system)
         PI = np.pi
-
         start = r_range[0]
         end = r_range[1]
         self.device = system.device
-
         V, vol_bins, bins = generate_vol_bins(start, end, nbins, dim=system.dim)
-
         self.V = V
         self.vol_bins = vol_bins.to(self.device)
         self.r_axis = np.linspace(start, end, nbins)
         self.device = system.device
         self.bins = bins
-
         self.smear = GaussianSmearing(
             start=start,
             stop=bins[-1],
@@ -60,7 +56,6 @@ class rdf(Observable):
         self.index_tuple = index_tuple
         
     def forward(self, xyz):
-
         nbr_list, pair_dis, _ = generate_nbr_list(xyz, 
                                                self.cutoff_boundary, 
                                                self.cell, 
