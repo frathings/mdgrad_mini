@@ -29,7 +29,6 @@ def gaussian_smearing(distances, offset, widths, centered=False):
         # widths = offset[1] - offset[0]
         coeff = -0.5 / torch.pow(widths, 2)
         diff = distances - offset
-
     else:
         # If Gaussians are centered, use offsets to compute widths
         coeff = -0.5 / torch.pow(offset, 2)
@@ -38,7 +37,6 @@ def gaussian_smearing(distances, offset, widths, centered=False):
 
     # Compute and return Gaussians
     gauss = torch.exp(coeff * torch.pow(diff, 2))
-
     return gauss
 
 class GaussianSmearing(nn.Module):
