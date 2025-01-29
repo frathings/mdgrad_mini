@@ -74,3 +74,15 @@ class rdf(Observable):
         rdf =  count / (self.vol_bins / self.V )  
 
         return count, self.bins, rdf 
+
+class vacf(Observable):
+    def __init__(self, system, t_range):
+        super(vacf, self).__init__(system)
+        self.t_window = [i for i in range(1, t_range, 1)]
+
+    def forward(self, vel):
+        vacf = [(vel * vel).mean()[None]]
+        # can be implemented in parrallel
+        vacf += [ (vel[t:] * vel[:-t]).mean()[None] for t in self.t_window]
+
+        return torch.stack(vacf).reshape(-1)
