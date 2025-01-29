@@ -1,0 +1,82 @@
+{
+    "pair_data_dict": {
+      "lj_0.845_1.5": {
+        "rdf_fn": "../data/LJ_data/rdf_rho0.845_T1.5_dt0.01.csv",
+        "vacf_fn": "../data/LJ_data/vacf_rho0.845_T1.5_dt0.01.csv",
+        "rho": 0.845,
+        "T": 1.5,
+        "start": 0.75,
+        "end": 3.3,
+        "element": "H",
+        "mass": 1.0,
+        "N_unitcell": 4,
+        "cell": "FaceCenteredCubic",
+        "target_pot": "LennardJones"
+      },
+      "lj_0.845_1.0": {
+        "rdf_fn": "../data/LJ_data/rdf_rho0.845_T1.0_dt0.01.csv",
+        "vacf_fn": "../data/LJ_data/vacf_rho0.845_T1.0_dt0.01.csv",
+        "rho": 0.845,
+        "T": 1.0,
+        "start": 0.75,
+        "end": 3.3,
+        "element": "H",
+        "mass": 1.0,
+        "N_unitcell": 4,
+        "cell": "FaceCenteredCubic",
+        "target_pot": "LennardJones"
+      }
+
+    },
+    "exp_rdf_data_dict": {
+      "Si_2.293_100K": {
+        "fn": "./data/a-Si/100K_2.293.csv",
+        "rho": 2.293,
+        "T": 100.0,
+        "start": 1.8,
+        "end": 7.9,
+        "element": "H",
+        "mass": 28.0855,
+        "N_unitcell": 8,
+        "cell": "Diamond"
+      },
+      "Si_2.287_83K": {
+        "fn": "../data/a-Si/83K_2.287_exp.csv",
+        "rho": 2.287,
+        "T": 83.0,
+        "start": 1.8,
+        "end": 10.0,
+        "element": "H",
+        "mass": 28.0855,
+        "N_unitcell": 8,
+        "cell": "Diamond"
+      },
+  
+      "H20_288K_spce": { 
+      "fn": "./data/water_sim/H2O_288K_spce.csv",
+      "rho": 1.0,
+       "T": 288.0, 
+       "start": 1.8, 
+       "end": 7.5,
+       "element": "O" ,
+       "mass": 18.01528,
+       "N_unitcell": 8,
+       "cell": "Diamond",
+       "pressure": 1
+       },
+
+      "H20_0.997_298K": {
+          "fn": "water_exp_pccp.csv",
+          "rho": 0.997,
+          "T": 298.0,
+          "start": 1.8,
+          "end": 7.5,
+          "element": "H",
+          "mass": 18.01528,
+          "N_unitcell": 8,
+          "cell": "Diamond",
+          "pressure": 1.0
+      }
+  }
+  }
+  

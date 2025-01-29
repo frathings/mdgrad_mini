@@ -1,0 +1,1 @@
+this folder contains scripts to produce the initial frame of our simulation.
