@@ -61,7 +61,7 @@ def verlet_update(func, t, dt, y):
 
         # more importantly are there better way to integrate the adjoint state other than midpoint integration 
 
-        #vadjoint_step_half = 1/2 * dydt_0[0 + 3] * dt # update adjoint state 
+        # vadjoint_step_half = 1/2 * dydt_0[0 + 3] * dt # update adjoint state 
         
         # func returns the infiniesmal changes of different states 
 

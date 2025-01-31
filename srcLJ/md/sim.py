@@ -74,7 +74,6 @@ class Simulations():
         t = torch.Tensor([dt * i for i in range(frequency)]).to(self.device)
 
         for epoch in range(sim_epochs):
-
             if self.integrator.adjoint:
                 trajs = odeint_adjoint(self.integrator, states, t, method=self.solvemethod)
             else:
@@ -87,3 +86,5 @@ class Simulations():
             states = self.get_check_point()
 
         return trajs
+    
+    

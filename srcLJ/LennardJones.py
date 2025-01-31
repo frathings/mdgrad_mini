@@ -165,7 +165,6 @@ def get_system(data_str, device, size):
 
     return system 
 
-x
 
 def get_target_obs(system, data_str, n_sim, rdf_range, nbins, t_range, dt, skip=25):
     
