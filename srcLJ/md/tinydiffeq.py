@@ -50,7 +50,7 @@ class FixedGridODESolver(object):
         pass
 
     @abc.abstractmethod
-    def step_func(self, func, t, dt, y):
+    def step_func(self, func, t, dt, y): # step_func is the NHVerlet 
         pass
 
     def integrate(self, t):

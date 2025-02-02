@@ -9,7 +9,6 @@ from torch import nn
 '''
 
 class NHVerlet(FixedGridODESolver):
-
     def step_func(self, func, t, dt, y):
         return NHverlet_update(func, t, dt, y)
 
@@ -18,16 +17,26 @@ class Verlet(FixedGridODESolver):
     def step_func(self, func, t, dt, y):
         return verlet_update(func, t, dt, y)
 
+import numpy as np
+
+def velocity_maxwellian(temp, mass=1.0):
+    """Draws a velocity from the Maxwell-Boltzmann distribution."""
+    return np.random.normal(0, np.sqrt(temp / mass))
+
+import numpy as np
+
+
+
 def verlet_update(func, t, dt, y):
-
     NUM_VAR = 2
-
+    nu = 0.7
+    temp = 1.2
     if len(y) == NUM_VAR: # integrator in the forward call 
         a_0, v_0 = func(t, y)
 
         # update half step 
         v_step_half = 0.5 *  a_0 * dt 
-
+ 
         # update full step in positions 
         q_step_full = (y[0] + v_step_half) * dt 
 
@@ -37,10 +46,15 @@ def verlet_update(func, t, dt, y):
         # full step update 
         v_step_full = v_step_half + 0.5 * a_dt * dt
 
+        # Example usage during simulation
+        #print("velocity : ",v_step_full)
+        if np.random.rand() < nu * dt:
+            v_step_full = velocity_maxwellian(temp)
+
         return tuple((v_step_full, q_step_full))
     
     elif len(y) == NUM_VAR * 2 + 2: # integrator in the backward call
-
+        print('bw')
         v_full, x_full, vad_full, xad_full = y[0], y[1], y[2], y[3]
 
         dv, dx, vad_vjp_full, xad_vjp_full, vjp_t, vjp_params= func(t, y)  # compute dy, and vjps 
@@ -104,11 +118,14 @@ def verlet_update(func, t, dt, y):
                 len(y), NUM_VAR, 2 * NUM_VAR + 2))
 
 def NHverlet_update(func, t, dt, y):
+#     solver = SOLVERS[method](func, y0, rtol=rtol, atol=atol, **options)
+#     solution = solver.integrate(t)
 
     NUM_VAR = 3
 
     if len(y) == NUM_VAR: # integrator in the forward call 
-        a_0, v_0, dpvdt_0 = func(t, y)
+        a_0, v_0, dpvdt_0 = func(t, y) # y is state
+        # (dvdt, v, torch.cat((dpvdt_0[None], dpvdt_mid, dpvdt_last[None])))
 
         # update half step 
         v_step_half = 1/2 *  a_0 * dt 
@@ -126,8 +143,8 @@ def NHverlet_update(func, t, dt, y):
 
         return tuple((v_step_full, q_step_full, pv_step_full))
     
-    elif len(y) == NUM_VAR * 2 + 2: # integrator in the backward call 
-        dydt_0 = func(t, y)
+    elif len(y) == NUM_VAR * 2 + 2: # integrator in the backward call   
+        dydt_0 = func(t, y)   
         
         v_step_half = 1/2 * dydt_0[0] * dt 
         #vadjoint_step_half = 1/2 * dydt_0[0 + 3] * dt # update adjoint state 
@@ -177,7 +194,6 @@ def odeint(func, y0, t, rtol=1e-7, atol=1e-9, method=None, options=None):
     }
 
     tensor_input, func, y0, t = _check_inputs(func, y0, t)
-
     if options is None:
         options = {}
     elif method is None:
@@ -186,31 +202,28 @@ def odeint(func, y0, t, rtol=1e-7, atol=1e-9, method=None, options=None):
     if method is None:
         method = 'dopri5'
 
-    solver = SOLVERS[method](func, y0, rtol=rtol, atol=atol, **options)
-    solution = solver.integrate(t)
+    solver = SOLVERS[method](func, y0, rtol=rtol, atol=atol, **options) 
+    solution = solver.integrate(t) 
     if tensor_input:
         solution = solution[0]
     return solution
 
 
-class OdeintAdjointMethod(torch.autograd.Function):
-
+class OdeintAdjointMethod(torch.autograd.Function): # Base class to create custom autograd.Function.
     @staticmethod
     def forward(ctx, *args):
         assert len(args) >= 8, 'Internal error: all arguments required.'
         y0, func, t, flat_params, rtol, atol, method, options = \
             args[:-7], args[-7], args[-6], args[-5], args[-4], args[-3], args[-2], args[-1]
-
         ctx.func, ctx.rtol, ctx.atol, ctx.method, ctx.options = func, rtol, atol, method, options
 
         with torch.no_grad():
-            ans = odeint(func, y0, t, rtol=rtol, atol=atol, method=method, options=options)
-        ctx.save_for_backward(t, flat_params, *ans)
-        return ans
+            ans = odeint(func, y0, t, rtol=rtol, atol=atol, method=method, options=options) # func is nosehoover class -> integrated -> 
+        ctx.save_for_backward(t, flat_params, *ans) # are saved for later use in the backward pass
+        return ans  
 
     @staticmethod
     def backward(ctx, *grad_output):
-
         t, flat_params, *ans = ctx.saved_tensors
         ans = tuple(ans)
         func, rtol, atol, method, options = ctx.func, ctx.rtol, ctx.atol, ctx.method, ctx.options
@@ -294,12 +307,9 @@ class OdeintAdjointMethod(torch.autograd.Function):
 
 
 def odeint_adjoint(func, y0, t, rtol=1e-6, atol=1e-12, method=None, options=None):
-
-    # We need this in order to access the variables inside this module,
-    # since we have no other way of getting variables along the execution path.
     if not isinstance(func, nn.Module):
-        raise ValueError('func is required to be an instance of nn.Module.')
-
+        raise ValueError('func is required to be an instance of nn.Module.') # class NoseHooverChain(torch.nn.Module):    
+    
     tensor_input = False
     if torch.is_tensor(y0):
 
@@ -315,10 +325,13 @@ def odeint_adjoint(func, y0, t, rtol=1e-6, atol=1e-12, method=None, options=None
         tensor_input = True
         y0 = (y0,)
         func = TupleFunc(func)
-
     flat_params = _flatten(func.parameters())
     ys = OdeintAdjointMethod.apply(*y0, func, t, flat_params, rtol, atol, method, options)
 
     if tensor_input:
         ys = ys[0]
     return ys
+
+
+
+

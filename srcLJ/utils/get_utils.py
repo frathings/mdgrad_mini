@@ -38,7 +38,7 @@ def get_observer(system, data_tag, nbins):
     # initialize observable function 
     return xnew, g_obs, obs
 
-
+'''
 def get_sim(system, model, data_tag, topology_update_freq):
 
     T = exp_rdf_data_dict[data_tag]['T']
@@ -56,6 +56,30 @@ def get_sim(system, model, data_tag, topology_update_freq):
 
     return sim
 
+'''
+from md.andersen_verlet import AndersenODE
+
+def get_sim(system, model, data_str, topology_update_freq=1):
+    # Retrieve the target temperature from your data dictionary.
+    T = exp_rdf_data_dict[data_str]['T']
+    
+    # Define time step and collision frequency for the Andersen thermostat.
+    dt = 1e-3       # Set an appropriate time step.
+    nu = 1e1        # Set an appropriate collision frequency.
+    
+    # Instantiate the AndersenVerlet integrator.
+    integrator_diffeq = AndersenODE(
+        potentials=model, 
+        system=system,
+        T=T,
+        dt=dt,
+        nu=nu
+    ).to(system.device)
+    
+    # Create your simulation object with the new integrator.
+    sim = Simulations(system, integrator_diffeq)
+    
+    return sim
 
 def build_simulators(data_list, system_list, net, prior, cutoff, pair_flag, tpair_flag, topology_update_freq=1): 
     model_list = []

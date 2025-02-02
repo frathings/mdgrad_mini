@@ -105,17 +105,14 @@ class LennardJones(torch.nn.Module):
 class pairMLP(torch.nn.Module):
     def __init__(self, n_gauss, r_start, r_end, n_layers, n_width, nonlinear, res=False):
         super(pairMLP, self).__init__()
-        
 
         nlr = nlr_dict[nonlinear]
-
         self.smear = GaussianSmearing(
             start=r_start,
             stop=r_end,
             n_gaussians=n_gauss,
             trainable=True
         )
-        
         self.layers = nn.ModuleList(
             [
             nn.Linear(n_gauss, n_gauss),
@@ -123,28 +120,17 @@ class pairMLP(torch.nn.Module):
             nn.Linear(n_gauss, n_width),
             nlr]
             )
-
         for _ in range(n_layers):
             self.layers.append(nn.Linear(n_width, n_width))
             self.layers.append(nlr)
-
         self.layers.append(nn.Linear(n_width, n_gauss))  
         self.layers.append(nlr)  
         self.layers.append(nn.Linear(n_gauss, 1)) 
-        self.res = res  # flag for residue connections 
-
-        
+         
     def forward(self, r):
         r = self.smear(r)
         for i in range(len(self.layers)):
-            if self.res is False:
-                r = self.layers[i](r)
-            else:
-                dr = self.layers[i](r)
-                if dr.shape[-1] == r.shape[-1]:
-                    r = r + dr 
-                else:
-                    r = dr 
+            r = self.layers[i](r)
         return r
 
 def get_pair_potential(assignments, sys_params):
