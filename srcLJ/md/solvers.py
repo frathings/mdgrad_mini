@@ -3,7 +3,7 @@ from md.tinydiffeq import RK4, FixedGridODESolver
 
 import torch 
 from torch import nn
-
+import numpy as np
 '''
     I need to think how to write generatic verlet update for both forward and adjoint integration 
 '''
@@ -11,7 +11,25 @@ from torch import nn
 class NHVerlet(FixedGridODESolver):
 
     def step_func(self, func, t, dt, y):
-        return NHverlet_update(func, t, dt, y)
+        if len(y) == 3:
+        # print(len(y))
+        # print(y)
+        # for i, yi in enumerate(y):
+        #     print(f"Element {i}: Type={type(yi)}, Shape={yi.shape if isinstance(yi, np.ndarray) or isinstance(yi, torch.Tensor) else 'Not an array/tensor'}")
+            v, q, pv_step_full = NHverlet_update(func, t, dt, y)
+            for i in range(256):
+                p = np.random.rand()  # Generate a random number
+                j = np.random.randint(0, 256)  # Choose a random particle
+                if p < 1e-4 * dt:
+#                    v[j] = torch.tensor(np.random.normal(loc=0.0, scale=1.2**0.5, size=3))  # Assign new velocity
+                    alpha = 0.1  # Smoothing factor (adjustable)
+                    new_velocity = torch.tensor(np.random.normal(loc=0.0, scale=1.2**0.5, size=3))
+                    v[j] = (1 - alpha) * v[j] + alpha * new_velocity  # Blend old and new velocity          
+            return tuple((v, q, pv_step_full))
+        else: 
+            return NHverlet_update(func, t, dt, y)
+
+
 
 class Verlet(FixedGridODESolver):
 
@@ -103,11 +121,50 @@ def verlet_update(func, t, dt, y):
         raise ValueError("received {} argumets integration, but should be {} for the forward call or {} for the backward call".format(
                 len(y), NUM_VAR, 2 * NUM_VAR + 2))
 
-def NHverlet_update(func, t, dt, y):
+import torch
+import torch
 
+def differentiable_andersen_update(v, mass, T_target, nu, dt, andersen_alpha):
+    """
+    Differentiable Andersen step: blends current velocities with new ones using a stochastic rule.
+
+    Args:
+        v (torch.Tensor): Current velocities.
+        mass (float or torch.Tensor): Mass of each particle.
+        T_target (float): Target temperature (Kelvin).
+        nu (float): Andersen thermostat collision frequency.
+        dt (float): Time step.
+        andersen_alpha (float): Blending factor (0 = no Andersen, 1 = full Andersen).
+
+    Returns:
+        torch.Tensor: Updated velocities.
+    """
+
+    # Ensure mass is a tensor
+    if isinstance(mass, (int, float)):  
+        mass = torch.tensor([mass], dtype=torch.float32, device=v.device)
+
+    # Compute standard deviation for Gaussian velocity sampling
+    k_B = 1.0  # Boltzmann constant (assuming energy units are normalized)
+    sigma_v = torch.sqrt(k_B * T_target / mass[:, None])  
+
+    # Sample new velocities from Maxwell-Boltzmann distribution
+    v_new = torch.normal(mean=0.0, std=sigma_v).to(v.device)
+
+    # Compute stochastic probability of velocity reset (similar to `nu * dt`)
+    reset_prob = torch.rand(v.shape, device=v.device) < (nu * dt)
+
+    # Smooth blending between old and new velocities (avoids hard resets)
+    v_updated = (1 - andersen_alpha) * v + andersen_alpha * v_new * reset_prob
+
+    return v_updated
+
+def NHverlet_update(func, t, dt, y):
+    
     NUM_VAR = 3
 
     if len(y) == NUM_VAR: # integrator in the forward call 
+        #print('fw')
         a_0, v_0, dpvdt_0 = func(t, y)
 
         # update half step 
@@ -122,8 +179,9 @@ def NHverlet_update(func, t, dt, y):
 
         # full step update 
         v_step_full = v_step_half + 1/2 * a_dt * dt
+       
         pv_step_full = pv_step_half + 1/2 * dpvdt_half * dt 
-
+       
         return tuple((v_step_full, q_step_full, pv_step_full))
     
     elif len(y) == NUM_VAR * 2 + 2: # integrator in the backward call 
@@ -131,7 +189,8 @@ def NHverlet_update(func, t, dt, y):
         
         v_step_half = 1/2 * dydt_0[0] * dt 
         #vadjoint_step_half = 1/2 * dydt_0[0 + 3] * dt # update adjoint state 
-        
+        #v_step_half = differentiable_andersen_update(v_step_half, mass=1, T_target=1.2, nu=1e-3, dt=dt, andersen_alpha=0.1)
+
         pv_step_half = 1/2 * dydt_0[2] * dt 
         #pvadjoint_step_half = 1/2 * dydt_0[2 + 3] * dt 
         

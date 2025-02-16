@@ -92,9 +92,9 @@ class NoseHooverChain(torch.nn.Module):
             u = self.model(q)
             f = -compute_grad(inputs=q, output=u.sum(-1))
 
-            coupled_forces = (p_v[0] * p.reshape(-1) / self.Q[0]).reshape(-1, 3)
+            #coupled_forces = (p_v[0] * p.reshape(-1) / self.Q[0]).reshape(-1, 3)
 
-            dpdt = f - coupled_forces
+            dpdt = f #- coupled_forces
 
             dpvdt_0 = 2 * (sys_ke - self.T * self.N_dof * 0.5) - p_v[0] * p_v[1]/ self.Q[1]
             dpvdt_mid = (p_v[:-2].pow(2) / self.Q[:-2] - self.T) - p_v[2:]*p_v[1:-1]/ self.Q[2:]
