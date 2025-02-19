@@ -4,9 +4,7 @@ from md.tinydiffeq import RK4, FixedGridODESolver
 import torch 
 from torch import nn
 import numpy as np
-'''
-    I need to think how to write generatic verlet update for both forward and adjoint integration 
-'''
+
 
 class NHVerlet(FixedGridODESolver):
 
@@ -74,10 +72,7 @@ def verlet_update(func, t, dt, y):
         # So vad_vjp = xad_full?
 
         # func is the automatically generated ODE for adjoints 
-        # dydt_0 variable name is a bit confusing(it even confused me after 3 months of writing this snippit),
-        # I need to change to the right adjoint definition -> dLdv, dLdq or v_hat and q_t  
 
-        # more importantly are there better way to integrate the adjoint state other than midpoint integration 
 
         # vadjoint_step_half = 1/2 * dydt_0[0 + 3] * dt # update adjoint state 
         
@@ -276,7 +271,6 @@ class OdeintAdjointMethod(torch.autograd.Function):
         n_tensors = len(ans)
         f_params = tuple(func.parameters())
 
-        # TODO: use a nn.Module and call odeint_adjoint to implement higher order derivatives.
         def augmented_dynamics(t, y_aug):
             # Dynamics of the original system augmented with
             # the adjoint wrt y, and an integrator wrt t and args.
