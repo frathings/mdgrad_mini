@@ -20,3 +20,17 @@ To install the required dependencies, run:
 ```bash
 pip install -r requirements.txt
 ```
+
+## Folders 
+
+Here, in the main branch, there is the **srcLJ** folder, which contains the core implementation.  
+
+To run the full simulation, execute **LJ_notebook.ipynb**.  
+
+### Expected Result:  
+![Expected Result 1](images/img1.png)
+![Expected Result 2](images/img2.png)
+
+
+
+
