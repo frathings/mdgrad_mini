@@ -8,4 +8,6 @@ This mini version retains only the essential code for LJ potential calculations,
 ## Main Features:
 
 🏎 Enhanced Thermostat Control – Adds an Andersen thermostat alongside the original Nosé-Hoover.
+
+
 🖥 Graphical User Interface (GUI) – Provides a user-friendly interface for improved usability.
