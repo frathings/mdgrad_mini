@@ -14,9 +14,9 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/frathings/mdgrad_mini.git
-
+```
 
 To install the required dependencies, run:
 ```bash
 pip install -r requirements.txt
-
+```
