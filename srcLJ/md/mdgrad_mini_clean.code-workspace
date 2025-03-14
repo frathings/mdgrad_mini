@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../../../mdgrad_mini/PDEs"
+		}
+	],
+	"settings": {}
+}
